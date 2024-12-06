@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { ColorWheel } from '@/components/ColorWheel';
 import { ColorDisplay } from '@/components/ColorDisplay';
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Label } from "@/components/ui/label"
 
 type HarmonyType = 'complementary' | 'analogous' | 'monochromatic' | 'triadic' | 'tetradic';
 
@@ -89,19 +88,17 @@ const Index = () => {
   const harmonyColors = calculateHarmonyColors(selectedColor, harmonyType);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600">
-            Harmonie des Couleurs
-          </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Explorez les harmonies de couleurs et trouvez la combinaison parfaite pour votre projet
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Roue Chromatique Interactive</h1>
+          <p className="text-lg text-gray-600">
+            Cliquez ou faites glisser sur la roue pour explorer les couleurs et leurs harmonies
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-          <Card className="p-8 bg-white/80 backdrop-blur-sm shadow-xl rounded-2xl space-y-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+          <div className="space-y-8">
             <div className="flex justify-center">
               <ColorWheel
                 onColorSelect={setSelectedColor}
@@ -111,51 +108,45 @@ const Index = () => {
               />
             </div>
 
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900">Type d'Harmonie</h3>
+            <div className="bg-white p-6 rounded-xl shadow-lg">
+              <h3 className="text-lg font-semibold mb-4">Type d'Harmonie</h3>
               <RadioGroup
                 defaultValue="complementary"
                 onValueChange={(value) => setHarmonyType(value as HarmonyType)}
-                className="grid grid-cols-2 gap-4"
+                className="grid gap-4"
               >
-                <div className="flex items-center space-x-2 bg-white/50 p-3 rounded-lg hover:bg-white/80 transition-colors">
+                <div className="flex items-center space-x-2">
                   <RadioGroupItem value="complementary" id="complementary" />
-                  <Label htmlFor="complementary" className="cursor-pointer">Complémentaire</Label>
+                  <Label htmlFor="complementary">Complémentaire</Label>
                 </div>
-                <div className="flex items-center space-x-2 bg-white/50 p-3 rounded-lg hover:bg-white/80 transition-colors">
+                <div className="flex items-center space-x-2">
                   <RadioGroupItem value="analogous" id="analogous" />
-                  <Label htmlFor="analogous" className="cursor-pointer">Analogue</Label>
+                  <Label htmlFor="analogous">Analogue</Label>
                 </div>
-                <div className="flex items-center space-x-2 bg-white/50 p-3 rounded-lg hover:bg-white/80 transition-colors">
+                <div className="flex items-center space-x-2">
                   <RadioGroupItem value="monochromatic" id="monochromatic" />
-                  <Label htmlFor="monochromatic" className="cursor-pointer">Monochrome</Label>
+                  <Label htmlFor="monochromatic">Monochrome</Label>
                 </div>
-                <div className="flex items-center space-x-2 bg-white/50 p-3 rounded-lg hover:bg-white/80 transition-colors">
+                <div className="flex items-center space-x-2">
                   <RadioGroupItem value="triadic" id="triadic" />
-                  <Label htmlFor="triadic" className="cursor-pointer">Triadique</Label>
+                  <Label htmlFor="triadic">Triadique</Label>
                 </div>
-                <div className="flex items-center space-x-2 bg-white/50 p-3 rounded-lg hover:bg-white/80 transition-colors">
+                <div className="flex items-center space-x-2">
                   <RadioGroupItem value="tetradic" id="tetradic" />
-                  <Label htmlFor="tetradic" className="cursor-pointer">Tétradique</Label>
+                  <Label htmlFor="tetradic">Tétradique</Label>
                 </div>
               </RadioGroup>
             </div>
-          </Card>
+          </div>
 
-          <Card className="p-8 bg-white/80 backdrop-blur-sm shadow-xl rounded-2xl">
+          <div className="bg-white p-6 rounded-xl shadow-lg">
             <ColorDisplay
               color={selectedColor}
               harmonyColors={harmonyColors}
               harmonyType={harmonyType}
             />
-          </Card>
+          </div>
         </div>
-
-        <footer className="mt-16 text-center text-gray-600">
-          <p className="text-sm">
-            Créez des palettes de couleurs harmonieuses pour vos projets de design
-          </p>
-        </footer>
       </div>
     </div>
   );
