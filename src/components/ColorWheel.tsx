@@ -27,21 +27,20 @@ export const ColorWheel: React.FC<ColorWheelProps> = ({
     const ctx = canvas.getContext('2d', { alpha: false });
     if (!ctx) return;
 
-    // Augmenter la résolution du canvas pour un meilleur rendu
+    // Définir une taille fixe pour le canvas
+    const size = 300; // Taille fixe de 300px
     const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
     
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
+    canvas.width = size * dpr;
+    canvas.height = size * dpr;
     
     ctx.scale(dpr, dpr);
     
-    // Définir les dimensions de travail
-    canvas.style.width = `${rect.width}px`;
-    canvas.style.height = `${rect.height}px`;
+    canvas.style.width = `${size}px`;
+    canvas.style.height = `${size}px`;
 
-    const centerX = canvas.width / (2 * dpr);
-    const centerY = canvas.height / (2 * dpr);
+    const centerX = size / 2;
+    const centerY = size / 2;
     const radius = Math.min(centerX, centerY) - 20;
 
     // Effacer le canvas avec un fond blanc
@@ -196,11 +195,9 @@ export const ColorWheel: React.FC<ColorWheelProps> = ({
   };
 
   return (
-    <div className={cn("relative inline-block", className)}>
+    <div className={cn("relative inline-block w-[300px]", className)}>
       <canvas
         ref={canvasRef}
-        width={300}
-        height={300}
         className="cursor-crosshair rounded-full shadow-lg hover:shadow-xl transition-shadow duration-300"
         onMouseDown={() => setIsDragging(true)}
         onMouseUp={() => setIsDragging(false)}
