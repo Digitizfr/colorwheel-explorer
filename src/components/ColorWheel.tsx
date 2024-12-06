@@ -9,6 +9,7 @@ interface ColorWheelProps {
 export const ColorWheel: React.FC<ColorWheelProps> = ({ onColorSelect, className }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [selectedColor, setSelectedColor] = useState<string>('#FFFFFF');
+  const [selectedPoint, setSelectedPoint] = useState<{ x: number, y: number } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
@@ -22,7 +23,7 @@ export const ColorWheel: React.FC<ColorWheelProps> = ({ onColorSelect, className
     const centerY = canvas.height / 2;
     const radius = Math.min(centerX, centerY) - 20;
 
-    // Draw color wheel
+    // Dessiner la roue chromatique
     for (let angle = 0; angle < 360; angle++) {
       const startAngle = (angle - 2) * Math.PI / 180;
       const endAngle = (angle + 2) * Math.PI / 180;
@@ -39,7 +40,21 @@ export const ColorWheel: React.FC<ColorWheelProps> = ({ onColorSelect, className
       ctx.fillStyle = gradient;
       ctx.fill();
     }
-  }, []);
+
+    // Dessiner l'indicateur de sélection si un point est sélectionné
+    if (selectedPoint) {
+      ctx.beginPath();
+      ctx.arc(selectedPoint.x, selectedPoint.y, 8, 0, 2 * Math.PI);
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(selectedPoint.x, selectedPoint.y, 6, 0, 2 * Math.PI);
+      ctx.strokeStyle = 'black';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+  }, [selectedPoint]);
 
   const handleInteraction = (event: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
@@ -62,6 +77,9 @@ export const ColorWheel: React.FC<ColorWheelProps> = ({ onColorSelect, className
     const x = clientX - rect.left;
     const y = clientY - rect.top;
 
+    // Mettre à jour le point sélectionné
+    setSelectedPoint({ x, y });
+
     const imageData = ctx.getImageData(x, y, 1, 1).data;
     const color = `#${imageData[0].toString(16).padStart(2, '0')}${imageData[1].toString(16).padStart(2, '0')}${imageData[2].toString(16).padStart(2, '0')}`;
 
@@ -75,7 +93,7 @@ export const ColorWheel: React.FC<ColorWheelProps> = ({ onColorSelect, className
         ref={canvasRef}
         width={300}
         height={300}
-        className="cursor-pointer rounded-full shadow-lg"
+        className="cursor-crosshair rounded-full shadow-lg hover:shadow-xl transition-shadow duration-300"
         onMouseDown={() => setIsDragging(true)}
         onMouseUp={() => setIsDragging(false)}
         onMouseMove={(e) => isDragging && handleInteraction(e)}
