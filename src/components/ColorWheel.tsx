@@ -24,17 +24,44 @@ export const ColorWheel: React.FC<ColorWheelProps> = ({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { alpha: false });
     if (!ctx) return;
 
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
+    // Augmenter la résolution du canvas pour un meilleur rendu
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    
+    ctx.scale(dpr, dpr);
+    
+    // Définir les dimensions de travail
+    canvas.style.width = `${rect.width}px`;
+    canvas.style.height = `${rect.height}px`;
+
+    const centerX = canvas.width / (2 * dpr);
+    const centerY = canvas.height / (2 * dpr);
     const radius = Math.min(centerX, centerY) - 20;
 
-    // Dessiner la roue chromatique
-    for (let angle = 0; angle < 360; angle++) {
-      const startAngle = (angle - 2) * Math.PI / 180;
-      const endAngle = (angle + 2) * Math.PI / 180;
+    // Effacer le canvas avec un fond blanc
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Dessiner la roue chromatique avec un anti-aliasing amélioré
+    const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
+    gradient.addColorStop(0, 'white');
+    gradient.addColorStop(1, 'white');
+    
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Dessiner les segments de couleur avec un meilleur lissage
+    for (let angle = 0; angle < 360; angle += 1) {
+      const startAngle = (angle - 0.5) * Math.PI / 180;
+      const endAngle = (angle + 1.5) * Math.PI / 180;
 
       ctx.beginPath();
       ctx.moveTo(centerX, centerY);
@@ -49,31 +76,32 @@ export const ColorWheel: React.FC<ColorWheelProps> = ({
       ctx.fill();
     }
 
-    // Dessiner l'indicateur de sélection principal
+    // Ajouter un contour lisse
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Dessiner l'indicateur de sélection principal avec un meilleur anti-aliasing
     if (selectedPoint) {
       ctx.beginPath();
       ctx.arc(selectedPoint.x, selectedPoint.y, 8, 0, 2 * Math.PI);
-      ctx.strokeStyle = 'white';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
       ctx.lineWidth = 2;
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(selectedPoint.x, selectedPoint.y, 6, 0, 2 * Math.PI);
-      ctx.strokeStyle = 'black';
-      ctx.lineWidth = 1;
       ctx.stroke();
     }
 
-    // Dessiner les indicateurs des couleurs d'harmonie
+    // Dessiner les indicateurs des couleurs d'harmonie avec un meilleur anti-aliasing
     harmonyPoints.forEach((point) => {
       ctx.beginPath();
       ctx.arc(point.x, point.y, 6, 0, 2 * Math.PI);
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(point.x, point.y, 4, 0, 2 * Math.PI);
-      ctx.strokeStyle = 'rgba(0, 0, 0, 0.6)';
-      ctx.lineWidth = 1;
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+      ctx.lineWidth = 1.5;
       ctx.stroke();
     });
   }, [selectedPoint, harmonyPoints]);
@@ -152,13 +180,19 @@ export const ColorWheel: React.FC<ColorWheelProps> = ({
     const x = clientX - rect.left;
     const y = clientY - rect.top;
 
-    setSelectedPoint({ x, y });
+    // Vérifier si le point est dans le cercle
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const radius = Math.min(centerX, centerY) - 20;
+    const distance = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
 
-    const imageData = ctx.getImageData(x, y, 1, 1).data;
-    const color = `#${imageData[0].toString(16).padStart(2, '0')}${imageData[1].toString(16).padStart(2, '0')}${imageData[2].toString(16).padStart(2, '0')}`;
-
-    setSelectedColor(color);
-    onColorSelect?.(color);
+    if (distance <= radius) {
+      setSelectedPoint({ x, y });
+      const imageData = ctx.getImageData(x, y, 1, 1).data;
+      const color = `#${imageData[0].toString(16).padStart(2, '0')}${imageData[1].toString(16).padStart(2, '0')}${imageData[2].toString(16).padStart(2, '0')}`;
+      setSelectedColor(color);
+      onColorSelect?.(color);
+    }
   };
 
   return (
@@ -170,6 +204,7 @@ export const ColorWheel: React.FC<ColorWheelProps> = ({
         className="cursor-crosshair rounded-full shadow-lg hover:shadow-xl transition-shadow duration-300"
         onMouseDown={() => setIsDragging(true)}
         onMouseUp={() => setIsDragging(false)}
+        onMouseLeave={() => setIsDragging(false)}
         onMouseMove={(e) => isDragging && handleInteraction(e)}
         onTouchStart={() => setIsDragging(true)}
         onTouchEnd={() => setIsDragging(false)}
