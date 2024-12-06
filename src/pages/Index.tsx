@@ -101,7 +101,6 @@ const Index = () => {
         </header>
 
         <div className="grid md:grid-cols-2 gap-6">
-          {/* Colonne de gauche : Sélection de couleur et type d'harmonie */}
           <div className="space-y-6">
             <Card className="p-6 backdrop-blur-sm bg-white/50">
               <h2 className="text-lg font-semibold mb-4">1. Choisissez votre couleur</h2>
@@ -145,7 +144,6 @@ const Index = () => {
             </Card>
           </div>
 
-          {/* Colonne de droite : Affichage des couleurs */}
           <div>
             <Card className="p-6 backdrop-blur-sm bg-white/50 h-full">
               <h2 className="text-lg font-semibold mb-4">Votre palette de couleurs</h2>
@@ -157,6 +155,36 @@ const Index = () => {
             </Card>
           </div>
         </div>
+
+        <section className="prose prose-gray max-w-none mt-12 bg-white/50 backdrop-blur-sm rounded-lg p-8 space-y-4">
+          <h2 className="text-2xl font-semibold text-gray-900">Le Cercle Chromatique : Guide Complet</h2>
+          
+          <p>Le cercle chromatique est un outil fondamental pour comprendre les relations entre les couleurs. Il permet de visualiser comment les couleurs s'harmonisent entre elles et aide à créer des palettes de couleurs cohérentes pour vos projets de design, d'art ou de décoration.</p>
+          
+          <h3 className="text-xl font-medium text-gray-800">Les Types d'Harmonies Chromatiques</h3>
+          
+          <ul className="space-y-2">
+            <li><strong>Complémentaire</strong> : Utilise deux couleurs opposées sur le cercle chromatique, créant un contraste maximal et une harmonie dynamique.</li>
+            <li><strong>Analogue</strong> : Combine des couleurs adjacentes sur le cercle, produisant une harmonie naturelle et apaisante.</li>
+            <li><strong>Monochrome</strong> : Utilise différentes nuances et tons d'une même couleur pour créer une palette subtile et élégante.</li>
+            <li><strong>Triadique</strong> : Sélectionne trois couleurs équidistantes sur le cercle, offrant un équilibre entre harmonie et contraste.</li>
+            <li><strong>Tétradique</strong> : Utilise quatre couleurs disposées en rectangle sur le cercle, permettant une palette riche et variée.</li>
+          </ul>
+
+          <h3 className="text-xl font-medium text-gray-800">Applications Pratiques</h3>
+          
+          <p>Notre outil de cercle chromatique en ligne vous permet d'explorer ces différentes harmonies de manière interactive. Idéal pour :</p>
+          
+          <ul className="space-y-2">
+            <li>Le design web et l'interface utilisateur</li>
+            <li>La décoration d'intérieur</li>
+            <li>Les projets artistiques et créatifs</li>
+            <li>Le design graphique et l'identité visuelle</li>
+            <li>La photographie et le traitement d'image</li>
+          </ul>
+
+          <p>Expérimentez avec notre outil pour découvrir les combinaisons qui correspondent le mieux à vos besoins créatifs. La théorie des couleurs n'aura plus de secrets pour vous !</p>
+        </section>
       </div>
     </div>
   );
