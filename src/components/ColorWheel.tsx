@@ -1,7 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
-import { calculateWheelDimensions, getColorFromPoint, polarToCartesian } from '@/utils/colorWheelUtils';
-import { renderColorWheel } from '@/utils/colorWheelRenderer';
 
 interface ColorWheelProps {
   onColorSelect?: (color: string) => void;
@@ -26,13 +24,112 @@ export const ColorWheel: React.FC<ColorWheelProps> = ({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d', { alpha: false });
+    const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const { centerX, centerY, radius, dpr } = calculateWheelDimensions(canvas);
-    
-    renderColorWheel(ctx, centerX, centerY, radius, selectedPoint, harmonyPoints, dpr);
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const radius = Math.min(centerX, centerY) - 20;
+
+    // Dessiner la roue chromatique
+    for (let angle = 0; angle < 360; angle++) {
+      const startAngle = (angle - 2) * Math.PI / 180;
+      const endAngle = (angle + 2) * Math.PI / 180;
+
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+      ctx.closePath();
+
+      const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
+      gradient.addColorStop(0, 'white');
+      gradient.addColorStop(1, `hsl(${angle}, 100%, 50%)`);
+
+      ctx.fillStyle = gradient;
+      ctx.fill();
+    }
+
+    // Dessiner l'indicateur de sélection principal
+    if (selectedPoint) {
+      ctx.beginPath();
+      ctx.arc(selectedPoint.x, selectedPoint.y, 8, 0, 2 * Math.PI);
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(selectedPoint.x, selectedPoint.y, 6, 0, 2 * Math.PI);
+      ctx.strokeStyle = 'black';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // Dessiner les indicateurs des couleurs d'harmonie
+    harmonyPoints.forEach((point) => {
+      ctx.beginPath();
+      ctx.arc(point.x, point.y, 6, 0, 2 * Math.PI);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(point.x, point.y, 4, 0, 2 * Math.PI);
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.6)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    });
   }, [selectedPoint, harmonyPoints]);
+
+  const polarToCartesian = (angle: number, radius: number, centerX: number, centerY: number) => {
+    return {
+      x: centerX + radius * Math.cos(angle * Math.PI / 180),
+      y: centerY + radius * Math.sin(angle * Math.PI / 180)
+    };
+  };
+
+  useEffect(() => {
+    if (!selectedPoint || !canvasRef.current) return;
+
+    const canvas = canvasRef.current;
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const radius = Math.min(centerX, centerY) - 20;
+
+    const dx = selectedPoint.x - centerX;
+    const dy = selectedPoint.y - centerY;
+    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+    // Calculer les angles selon le type d'harmonie
+    let harmonies: number[] = [];
+    switch (harmonyType) {
+      case 'complementary':
+        harmonies = [angle + 180];
+        break;
+      case 'analogous':
+        harmonies = [angle + 30, angle - 30];
+        break;
+      case 'monochromatic':
+        // Pour le monochromatique, on garde le même angle mais on varie la distance
+        harmonies = [angle, angle, angle];
+        break;
+      case 'triadic':
+        harmonies = [angle + 120, angle - 120];
+        break;
+      case 'tetradic':
+        harmonies = [angle + 90, angle + 180, angle + 270];
+        break;
+    }
+
+    // Calculer les points d'harmonie avec des rayons différents pour le monochromatique
+    const newHarmonyPoints = harmonies.map((harmonyAngle, index) => {
+      if (harmonyType === 'monochromatic') {
+        // Pour le monochromatique, on utilise différents rayons
+        const radiusMultiplier = 0.6 + (index * 0.2); // 0.6, 0.8, 1.0
+        return polarToCartesian(harmonyAngle, radius * radiusMultiplier, centerX, centerY);
+      }
+      return polarToCartesian(harmonyAngle, radius * 0.8, centerX, centerY);
+    });
+
+    setHarmonyPoints(newHarmonyPoints);
+  }, [selectedPoint, harmonyType]);
 
   const handleInteraction = (event: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
@@ -52,76 +149,27 @@ export const ColorWheel: React.FC<ColorWheelProps> = ({
       clientY = event.clientY;
     }
 
-    const { centerX, centerY, radius, dpr } = calculateWheelDimensions(canvas);
-    
-    // Convertir les coordonnées du clic en coordonnées canvas
-    const x = (clientX - rect.left) * dpr;
-    const y = (clientY - rect.top) * dpr;
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
 
-    // Vérifier si le clic est dans le cercle
-    const distance = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
+    setSelectedPoint({ x, y });
 
-    if (distance <= radius) {
-      // Convertir les coordonnées canvas en coordonnées d'affichage
-      const displayX = (clientX - rect.left);
-      const displayY = (clientY - rect.top);
-      
-      setSelectedPoint({ x: displayX, y: displayY });
-      
-      const color = getColorFromPoint(ctx, x, y);
-      setSelectedColor(color);
-      onColorSelect?.(color);
-    }
+    const imageData = ctx.getImageData(x, y, 1, 1).data;
+    const color = `#${imageData[0].toString(16).padStart(2, '0')}${imageData[1].toString(16).padStart(2, '0')}${imageData[2].toString(16).padStart(2, '0')}`;
+
+    setSelectedColor(color);
+    onColorSelect?.(color);
   };
 
-  useEffect(() => {
-    if (!selectedPoint || !canvasRef.current) return;
-
-    const canvas = canvasRef.current;
-    const { centerX, centerY, radius, dpr } = calculateWheelDimensions(canvas);
-
-    const dx = (selectedPoint.x * dpr) - centerX;
-    const dy = (selectedPoint.y * dpr) - centerY;
-    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-
-    let harmonies: number[] = [];
-    switch (harmonyType) {
-      case 'complementary':
-        harmonies = [angle + 180];
-        break;
-      case 'analogous':
-        harmonies = [angle + 30, angle - 30];
-        break;
-      case 'monochromatic':
-        harmonies = [angle, angle, angle];
-        break;
-      case 'triadic':
-        harmonies = [angle + 120, angle - 120];
-        break;
-      case 'tetradic':
-        harmonies = [angle + 90, angle + 180, angle + 270];
-        break;
-    }
-
-    const newHarmonyPoints = harmonies.map((harmonyAngle, index) => {
-      if (harmonyType === 'monochromatic') {
-        const radiusMultiplier = 0.6 + (index * 0.2);
-        return polarToCartesian(harmonyAngle, (radius / dpr) * radiusMultiplier, centerX / dpr, centerY / dpr);
-      }
-      return polarToCartesian(harmonyAngle, (radius / dpr) * 0.8, centerX / dpr, centerY / dpr);
-    });
-
-    setHarmonyPoints(newHarmonyPoints);
-  }, [selectedPoint, harmonyType]);
-
   return (
-    <div className={cn("relative inline-block w-[300px]", className)}>
+    <div className={cn("relative inline-block", className)}>
       <canvas
         ref={canvasRef}
+        width={300}
+        height={300}
         className="cursor-crosshair rounded-full shadow-lg hover:shadow-xl transition-shadow duration-300"
         onMouseDown={() => setIsDragging(true)}
         onMouseUp={() => setIsDragging(false)}
-        onMouseLeave={() => setIsDragging(false)}
         onMouseMove={(e) => isDragging && handleInteraction(e)}
         onTouchStart={() => setIsDragging(true)}
         onTouchEnd={() => setIsDragging(false)}
