@@ -5,6 +5,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Palette } from "lucide-react";
+import { Footer } from '@/components/Footer';
 
 type HarmonyType = 'complementary' | 'analogous' | 'monochromatic' | 'triadic' | 'tetradic';
 
@@ -211,6 +212,8 @@ const Index = () => {
             </ul>
           </div>
         </section>
+
+        <Footer />
       </div>
     </div>
   );
