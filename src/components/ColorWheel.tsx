@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
+import { calculateWheelDimensions, getColorFromPoint, polarToCartesian } from '@/utils/colorWheelUtils';
+import { renderColorWheel } from '@/utils/colorWheelRenderer';
 
 interface ColorWheelProps {
   onColorSelect?: (color: string) => void;
@@ -27,82 +29,9 @@ export const ColorWheel: React.FC<ColorWheelProps> = ({
     const ctx = canvas.getContext('2d', { alpha: false });
     if (!ctx) return;
 
-    const size = 300;
-    const dpr = window.devicePixelRatio || 1;
+    const { centerX, centerY, radius, dpr } = calculateWheelDimensions(canvas);
     
-    canvas.width = size * dpr;
-    canvas.height = size * dpr;
-    
-    ctx.scale(dpr, dpr);
-    
-    canvas.style.width = `${size}px`;
-    canvas.style.height = `${size}px`;
-
-    const centerX = size / 2;
-    const centerY = size / 2;
-    const radius = Math.min(centerX, centerY) - 20;
-
-    // Effacer le canvas avec un fond blanc
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Dessiner la roue chromatique avec un anti-aliasing amélioré
-    const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
-    gradient.addColorStop(0, 'white');
-    gradient.addColorStop(1, 'white');
-    
-    ctx.fillStyle = gradient;
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Dessiner les segments de couleur avec un meilleur lissage
-    for (let angle = 0; angle < 360; angle += 1) {
-      const startAngle = (angle - 0.5) * Math.PI / 180;
-      const endAngle = (angle + 1.5) * Math.PI / 180;
-
-      ctx.beginPath();
-      ctx.moveTo(centerX, centerY);
-      ctx.arc(centerX, centerY, radius, startAngle, endAngle);
-      ctx.closePath();
-
-      const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
-      gradient.addColorStop(0, 'white');
-      gradient.addColorStop(1, `hsl(${angle}, 100%, 50%)`);
-
-      ctx.fillStyle = gradient;
-      ctx.fill();
-    }
-
-    // Ajouter un contour lisse
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    // Dessiner l'indicateur de sélection principal avec un meilleur anti-aliasing
-    if (selectedPoint) {
-      ctx.beginPath();
-      ctx.arc(selectedPoint.x, selectedPoint.y, 8, 0, 2 * Math.PI);
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-    }
-
-    // Dessiner les indicateurs des couleurs d'harmonie avec un meilleur anti-aliasing
-    harmonyPoints.forEach((point) => {
-      ctx.beginPath();
-      ctx.arc(point.x, point.y, 6, 0, 2 * Math.PI);
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-    });
-
+    renderColorWheel(ctx, centerX, centerY, radius, selectedPoint, harmonyPoints, dpr);
   }, [selectedPoint, harmonyPoints]);
 
   const handleInteraction = (event: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
@@ -123,48 +52,38 @@ export const ColorWheel: React.FC<ColorWheelProps> = ({
       clientY = event.clientY;
     }
 
-    const dpr = window.devicePixelRatio || 1;
-    const x = ((clientX - rect.left) * dpr);
-    const y = ((clientY - rect.top) * dpr);
+    const { centerX, centerY, radius, dpr } = calculateWheelDimensions(canvas);
+    
+    // Convertir les coordonnées du clic en coordonnées canvas
+    const x = (clientX - rect.left) * dpr;
+    const y = (clientY - rect.top) * dpr;
 
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-    const radius = Math.min(centerX, centerY) - (20 * dpr);
-
+    // Vérifier si le clic est dans le cercle
     const distance = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
 
     if (distance <= radius) {
-      const scaledX = (x / dpr);
-      const scaledY = (y / dpr);
-      setSelectedPoint({ x: scaledX, y: scaledY });
-
-      const imageData = ctx.getImageData(x, y, 1, 1).data;
-      const color = `#${imageData[0].toString(16).padStart(2, '0')}${imageData[1].toString(16).padStart(2, '0')}${imageData[2].toString(16).padStart(2, '0')}`;
+      // Convertir les coordonnées canvas en coordonnées d'affichage
+      const displayX = (clientX - rect.left);
+      const displayY = (clientY - rect.top);
+      
+      setSelectedPoint({ x: displayX, y: displayY });
+      
+      const color = getColorFromPoint(ctx, x, y);
       setSelectedColor(color);
       onColorSelect?.(color);
     }
-  };
-
-  const polarToCartesian = (angle: number, radius: number, centerX: number, centerY: number) => {
-    return {
-      x: centerX + radius * Math.cos(angle * Math.PI / 180),
-      y: centerY + radius * Math.sin(angle * Math.PI / 180)
-    };
   };
 
   useEffect(() => {
     if (!selectedPoint || !canvasRef.current) return;
 
     const canvas = canvasRef.current;
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-    const radius = Math.min(centerX, centerY) - 20;
+    const { centerX, centerY, radius, dpr } = calculateWheelDimensions(canvas);
 
-    const dx = selectedPoint.x - centerX;
-    const dy = selectedPoint.y - centerY;
+    const dx = (selectedPoint.x * dpr) - centerX;
+    const dy = (selectedPoint.y * dpr) - centerY;
     const angle = Math.atan2(dy, dx) * 180 / Math.PI;
 
-    // Calculer les angles selon le type d'harmonie
     let harmonies: number[] = [];
     switch (harmonyType) {
       case 'complementary':
@@ -174,7 +93,6 @@ export const ColorWheel: React.FC<ColorWheelProps> = ({
         harmonies = [angle + 30, angle - 30];
         break;
       case 'monochromatic':
-        // Pour le monochromatique, on garde le même angle mais on varie la distance
         harmonies = [angle, angle, angle];
         break;
       case 'triadic':
@@ -185,14 +103,12 @@ export const ColorWheel: React.FC<ColorWheelProps> = ({
         break;
     }
 
-    // Calculer les points d'harmonie avec des rayons différents pour le monochromatique
     const newHarmonyPoints = harmonies.map((harmonyAngle, index) => {
       if (harmonyType === 'monochromatic') {
-        // Pour le monochromatique, on utilise différents rayons
-        const radiusMultiplier = 0.6 + (index * 0.2); // 0.6, 0.8, 1.0
-        return polarToCartesian(harmonyAngle, radius * radiusMultiplier, centerX, centerY);
+        const radiusMultiplier = 0.6 + (index * 0.2);
+        return polarToCartesian(harmonyAngle, (radius / dpr) * radiusMultiplier, centerX / dpr, centerY / dpr);
       }
-      return polarToCartesian(harmonyAngle, radius * 0.8, centerX, centerY);
+      return polarToCartesian(harmonyAngle, (radius / dpr) * 0.8, centerX / dpr, centerY / dpr);
     });
 
     setHarmonyPoints(newHarmonyPoints);
