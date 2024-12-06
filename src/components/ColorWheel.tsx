@@ -27,6 +27,9 @@ export const ColorWheel: React.FC<ColorWheelProps> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    // Nettoyer complètement le canvas avant chaque rendu
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
     const radius = Math.min(centerX, centerY) - 20;
@@ -48,6 +51,13 @@ export const ColorWheel: React.FC<ColorWheelProps> = ({
       ctx.fillStyle = gradient;
       ctx.fill();
     }
+
+    // Créer un masque circulaire pour éviter les débordements
+    ctx.globalCompositeOperation = 'destination-in';
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
 
     // Dessiner l'indicateur de sélection principal
     if (selectedPoint) {
@@ -149,7 +159,6 @@ export const ColorWheel: React.FC<ColorWheelProps> = ({
     const x = clientX - rect.left;
     const y = clientY - rect.top;
 
-    // Calculer la distance par rapport au centre
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
     const radius = Math.min(centerX, centerY) - 20;
@@ -158,14 +167,12 @@ export const ColorWheel: React.FC<ColorWheelProps> = ({
     const dy = y - centerY;
     const distance = Math.sqrt(dx * dx + dy * dy);
 
-    // Si le point est en dehors du cercle, on le ramène sur le bord
     if (distance > radius) {
       const angle = Math.atan2(dy, dx);
       const newX = centerX + radius * Math.cos(angle);
       const newY = centerY + radius * Math.sin(angle);
       setSelectedPoint({ x: newX, y: newY });
       
-      // Obtenir la couleur au point ajusté
       const imageData = ctx.getImageData(newX, newY, 1, 1).data;
       const color = `#${imageData[0].toString(16).padStart(2, '0')}${imageData[1].toString(16).padStart(2, '0')}${imageData[2].toString(16).padStart(2, '0')}`;
       setSelectedColor(color);
