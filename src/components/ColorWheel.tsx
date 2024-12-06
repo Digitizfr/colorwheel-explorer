@@ -88,55 +88,78 @@ export const ColorWheel: React.FC<ColorWheelProps> = ({
     });
   }, [selectedPoint, harmonyPoints]);
 
-  const polarToCartesian = (angle: number, radius: number, centerX: number, centerY: number) => {
-    return {
-      x: centerX + radius * Math.cos(angle * Math.PI / 180),
-      y: centerY + radius * Math.sin(angle * Math.PI / 180)
-    };
+  const getColorAtPoint = (x: number, y: number, ctx: CanvasRenderingContext2D) => {
+    const imageData = ctx.getImageData(x, y, 1, 1).data;
+    return `#${imageData[0].toString(16).padStart(2, '0')}${imageData[1].toString(16).padStart(2, '0')}${imageData[2].toString(16).padStart(2, '0')}`;
   };
 
-  useEffect(() => {
-    if (!selectedPoint || !canvasRef.current) return;
+  const calculateHarmonyPoints = (angle: number, distance: number, centerX: number, centerY: number, radius: number) => {
+    let points: Array<{ x: number, y: number }> = [];
+    const normalizedDistance = Math.min(distance, radius) / radius;
 
-    const canvas = canvasRef.current;
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-    const radius = Math.min(centerX, centerY) - 20;
-
-    const dx = selectedPoint.x - centerX;
-    const dy = selectedPoint.y - centerY;
-    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-
-    // Calculer les angles selon le type d'harmonie
-    let harmonies: number[] = [];
     switch (harmonyType) {
       case 'complementary':
-        harmonies = [angle + 180];
+        points = [{
+          x: centerX + radius * normalizedDistance * Math.cos((angle + Math.PI) % (2 * Math.PI)),
+          y: centerY + radius * normalizedDistance * Math.sin((angle + Math.PI) % (2 * Math.PI))
+        }];
         break;
       case 'analogous':
-        harmonies = [angle + 30, angle - 30];
-        break;
-      case 'monochromatic':
-        harmonies = [angle, angle, angle];
+        points = [
+          {
+            x: centerX + radius * normalizedDistance * Math.cos((angle + Math.PI / 6) % (2 * Math.PI)),
+            y: centerY + radius * normalizedDistance * Math.sin((angle + Math.PI / 6) % (2 * Math.PI))
+          },
+          {
+            x: centerX + radius * normalizedDistance * Math.cos((angle - Math.PI / 6) % (2 * Math.PI)),
+            y: centerY + radius * normalizedDistance * Math.sin((angle - Math.PI / 6) % (2 * Math.PI))
+          }
+        ];
         break;
       case 'triadic':
-        harmonies = [angle + 120, angle - 120];
+        points = [
+          {
+            x: centerX + radius * normalizedDistance * Math.cos((angle + (2 * Math.PI / 3)) % (2 * Math.PI)),
+            y: centerY + radius * normalizedDistance * Math.sin((angle + (2 * Math.PI / 3)) % (2 * Math.PI))
+          },
+          {
+            x: centerX + radius * normalizedDistance * Math.cos((angle + (4 * Math.PI / 3)) % (2 * Math.PI)),
+            y: centerY + radius * normalizedDistance * Math.sin((angle + (4 * Math.PI / 3)) % (2 * Math.PI))
+          }
+        ];
         break;
       case 'tetradic':
-        harmonies = [angle + 90, angle + 180, angle + 270];
+        points = [
+          {
+            x: centerX + radius * normalizedDistance * Math.cos((angle + Math.PI / 2) % (2 * Math.PI)),
+            y: centerY + radius * normalizedDistance * Math.sin((angle + Math.PI / 2) % (2 * Math.PI))
+          },
+          {
+            x: centerX + radius * normalizedDistance * Math.cos((angle + Math.PI) % (2 * Math.PI)),
+            y: centerY + radius * normalizedDistance * Math.sin((angle + Math.PI) % (2 * Math.PI))
+          },
+          {
+            x: centerX + radius * normalizedDistance * Math.cos((angle + (3 * Math.PI / 2)) % (2 * Math.PI)),
+            y: centerY + radius * normalizedDistance * Math.sin((angle + (3 * Math.PI / 2)) % (2 * Math.PI))
+          }
+        ];
+        break;
+      case 'monochromatic':
+        const baseDistance = normalizedDistance * radius;
+        points = [
+          {
+            x: centerX + (baseDistance * 0.6) * Math.cos(angle),
+            y: centerY + (baseDistance * 0.6) * Math.sin(angle)
+          },
+          {
+            x: centerX + (baseDistance * 0.8) * Math.cos(angle),
+            y: centerY + (baseDistance * 0.8) * Math.sin(angle)
+          }
+        ];
         break;
     }
-
-    const newHarmonyPoints = harmonies.map((harmonyAngle, index) => {
-      if (harmonyType === 'monochromatic') {
-        const radiusMultiplier = 0.6 + (index * 0.2);
-        return polarToCartesian(harmonyAngle, radius * radiusMultiplier, centerX, centerY);
-      }
-      return polarToCartesian(harmonyAngle, radius * 0.8, centerX, centerY);
-    });
-
-    setHarmonyPoints(newHarmonyPoints);
-  }, [selectedPoint, harmonyType]);
+    return points;
+  };
 
   const handleInteraction = (event: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
@@ -166,24 +189,28 @@ export const ColorWheel: React.FC<ColorWheelProps> = ({
     const dx = x - centerX;
     const dy = y - centerY;
     const distance = Math.sqrt(dx * dx + dy * dy);
+    const angle = Math.atan2(dy, dx);
 
     if (distance > radius) {
-      const angle = Math.atan2(dy, dx);
       const newX = centerX + radius * Math.cos(angle);
       const newY = centerY + radius * Math.sin(angle);
       setSelectedPoint({ x: newX, y: newY });
       
-      const imageData = ctx.getImageData(newX, newY, 1, 1).data;
-      const color = `#${imageData[0].toString(16).padStart(2, '0')}${imageData[1].toString(16).padStart(2, '0')}${imageData[2].toString(16).padStart(2, '0')}`;
+      const color = getColorAtPoint(newX, newY, ctx);
       setSelectedColor(color);
       onColorSelect?.(color);
+
+      const harmonyPoints = calculateHarmonyPoints(angle, radius, centerX, centerY, radius);
+      setHarmonyPoints(harmonyPoints);
     } else {
       setSelectedPoint({ x, y });
       
-      const imageData = ctx.getImageData(x, y, 1, 1).data;
-      const color = `#${imageData[0].toString(16).padStart(2, '0')}${imageData[1].toString(16).padStart(2, '0')}${imageData[2].toString(16).padStart(2, '0')}`;
+      const color = getColorAtPoint(x, y, ctx);
       setSelectedColor(color);
       onColorSelect?.(color);
+
+      const harmonyPoints = calculateHarmonyPoints(angle, distance, centerX, centerY, radius);
+      setHarmonyPoints(harmonyPoints);
     }
   };
 
