@@ -156,34 +156,60 @@ const Index = () => {
           </div>
         </div>
 
-        <section className="prose prose-gray max-w-none mt-12 bg-white/50 backdrop-blur-sm rounded-lg p-8 space-y-4">
-          <h2 className="text-2xl font-semibold text-gray-900">Le Cercle Chromatique : Guide Complet</h2>
+        <section className="prose prose-gray max-w-none mt-12 bg-white/50 backdrop-blur-sm rounded-lg p-8 space-y-6">
+          <h2 className="text-2xl font-semibold text-gray-900">Le cercle chromatique : guide complet</h2>
           
-          <p>Le cercle chromatique est un outil fondamental pour comprendre les relations entre les couleurs. Il permet de visualiser comment les couleurs s'harmonisent entre elles et aide à créer des palettes de couleurs cohérentes pour vos projets de design, d'art ou de décoration.</p>
-          
-          <h3 className="text-xl font-medium text-gray-800">Les Types d'Harmonies Chromatiques</h3>
-          
-          <ul className="space-y-2">
-            <li><strong>Complémentaire</strong> : Utilise deux couleurs opposées sur le cercle chromatique, créant un contraste maximal et une harmonie dynamique.</li>
-            <li><strong>Analogue</strong> : Combine des couleurs adjacentes sur le cercle, produisant une harmonie naturelle et apaisante.</li>
-            <li><strong>Monochrome</strong> : Utilise différentes nuances et tons d'une même couleur pour créer une palette subtile et élégante.</li>
-            <li><strong>Triadique</strong> : Sélectionne trois couleurs équidistantes sur le cercle, offrant un équilibre entre harmonie et contraste.</li>
-            <li><strong>Tétradique</strong> : Utilise quatre couleurs disposées en rectangle sur le cercle, permettant une palette riche et variée.</li>
-          </ul>
+          <div>
+            <h3 className="text-xl font-medium text-gray-800">Histoire et origine</h3>
+            <p>Le cercle chromatique tel que nous le connaissons aujourd'hui est le fruit d'une longue évolution. Sir Isaac Newton a posé les premières bases en 1666 en décomposant la lumière à travers un prisme, créant ainsi le premier diagramme circulaire des couleurs. Plus tard, au XVIIIe siècle, Moses Harris a développé l'un des premiers cercles chromatiques des pigments. Johann Wolfgang von Goethe a ensuite approfondi ces travaux avec sa "Théorie des couleurs" en 1810, ajoutant une dimension psychologique à la compréhension des couleurs. Le peintre Johannes Itten a révolutionné son utilisation au XXe siècle en l'intégrant dans l'enseignement du Bauhaus.</p>
+          </div>
 
-          <h3 className="text-xl font-medium text-gray-800">Applications Pratiques</h3>
-          
-          <p>Notre outil de cercle chromatique en ligne vous permet d'explorer ces différentes harmonies de manière interactive. Idéal pour :</p>
-          
-          <ul className="space-y-2">
-            <li>Le design web et l'interface utilisateur</li>
-            <li>La décoration d'intérieur</li>
-            <li>Les projets artistiques et créatifs</li>
-            <li>Le design graphique et l'identité visuelle</li>
-            <li>La photographie et le traitement d'image</li>
-          </ul>
+          <div>
+            <h3 className="text-xl font-medium text-gray-800">Utilité du cercle chromatique</h3>
+            <p>Le cercle chromatique est bien plus qu'un simple outil de représentation des couleurs. Il sert à :</p>
+            <ul className="list-disc pl-6 space-y-2">
+              <li>comprendre les relations entre les couleurs et leur interaction</li>
+              <li>identifier rapidement les combinaisons harmonieuses</li>
+              <li>prévoir l'effet visuel d'une association de couleurs</li>
+              <li>faciliter la communication entre professionnels du design et clients</li>
+              <li>enseigner les principes fondamentaux de la théorie des couleurs</li>
+              <li>résoudre les problèmes de composition colorée dans tout projet créatif</li>
+            </ul>
+          </div>
 
-          <p>Expérimentez avec notre outil pour découvrir les combinaisons qui correspondent le mieux à vos besoins créatifs. La théorie des couleurs n'aura plus de secrets pour vous !</p>
+          <div>
+            <h3 className="text-xl font-medium text-gray-800">Les types d'harmonies chromatiques</h3>
+            <ul className="space-y-2">
+              <li><strong>Complémentaire</strong> : utilise deux couleurs opposées sur le cercle chromatique, créant un contraste maximal et une harmonie dynamique.</li>
+              <li><strong>Analogue</strong> : combine des couleurs adjacentes sur le cercle, produisant une harmonie naturelle et apaisante.</li>
+              <li><strong>Monochrome</strong> : utilise différentes nuances et tons d'une même couleur pour créer une palette subtile et élégante.</li>
+              <li><strong>Triadique</strong> : sélectionne trois couleurs équidistantes sur le cercle, offrant un équilibre entre harmonie et contraste.</li>
+              <li><strong>Tétradique</strong> : utilise quatre couleurs disposées en rectangle sur le cercle, permettant une palette riche et variée.</li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="text-xl font-medium text-gray-800">Comment utiliser le cercle chromatique</h3>
+            <p>Pour tirer le meilleur parti du cercle chromatique, suivez ces étapes :</p>
+            <ul className="list-disc pl-6 space-y-2">
+              <li>Familiarisez-vous avec sa structure : le cercle est traditionnellement composé de 12 couleurs, comprenant les couleurs primaires (rouge, jaune, bleu), secondaires (vert, orange, violet) et tertiaires.</li>
+              <li>Choisissez votre approche harmonique : selon votre projet, sélectionnez l'une des harmonies chromatiques (complémentaire, analogue, etc.) comme point de départ.</li>
+              <li>Expérimentez avec les variations : une fois les couleurs de base choisies, explorez les nuances, les tons et les teintes pour affiner votre palette.</li>
+              <li>Testez dans le contexte : appliquez votre sélection de couleurs dans votre projet et ajustez selon les besoins spécifiques de votre support (écran, impression, peinture, etc.).</li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="text-xl font-medium text-gray-800">Applications pratiques</h3>
+            <p>Notre outil de cercle chromatique en ligne vous permet d'explorer ces différentes harmonies de manière interactive. Idéal pour :</p>
+            <ul className="list-disc pl-6 space-y-2">
+              <li>le design web et l'interface utilisateur</li>
+              <li>la décoration d'intérieur</li>
+              <li>les projets artistiques et créatifs</li>
+              <li>le design graphique et l'identité visuelle</li>
+              <li>la photographie et le traitement d'image</li>
+            </ul>
+          </div>
         </section>
       </div>
     </div>
