@@ -10,7 +10,7 @@ interface ColorDisplayProps {
 
 export const ColorDisplay: React.FC<ColorDisplayProps> = ({
   color,
-  harmonyColors,
+  harmonyColors = [], // Provide default empty array
   harmonyType,
   className,
 }) => {
@@ -38,6 +38,9 @@ export const ColorDisplay: React.FC<ColorDisplayProps> = ({
     }
   };
 
+  // Ensure harmonyColors exists and has elements before trying to slice
+  const displayHarmonyColors = Array.isArray(harmonyColors) ? harmonyColors.slice(1) : [];
+
   return (
     <div className={cn("space-y-6 animate-fade-in", className)}>
       <div className="space-y-2">
@@ -57,7 +60,7 @@ export const ColorDisplay: React.FC<ColorDisplayProps> = ({
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">{getHarmonyTitle()}</h3>
         <div className="grid grid-cols-2 gap-4">
-          {harmonyColors.slice(1).map((harmonyColor, index) => (
+          {displayHarmonyColors.map((harmonyColor, index) => (
             <div key={index} className="flex items-center space-x-4">
               <div
                 className="w-16 h-16 rounded-lg shadow-md"
