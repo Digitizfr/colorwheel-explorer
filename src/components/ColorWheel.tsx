@@ -123,19 +123,19 @@ export const ColorWheel: React.FC<ColorWheelProps> = ({
       clientY = event.clientY;
     }
 
-    const x = ((clientX - rect.left) * canvas.width) / rect.width;
-    const y = ((clientY - rect.top) * canvas.height) / rect.height;
+    const dpr = window.devicePixelRatio || 1;
+    const x = ((clientX - rect.left) * dpr);
+    const y = ((clientY - rect.top) * dpr);
 
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
-    const radius = Math.min(centerX, centerY) - 20;
+    const radius = Math.min(centerX, centerY) - (20 * dpr);
 
-    // Vérifier si le point est dans le cercle
     const distance = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
 
     if (distance <= radius) {
-      const scaledX = (x * 300) / canvas.width;
-      const scaledY = (y * 300) / canvas.height;
+      const scaledX = (x / dpr);
+      const scaledY = (y / dpr);
       setSelectedPoint({ x: scaledX, y: scaledY });
 
       const imageData = ctx.getImageData(x, y, 1, 1).data;
