@@ -4,10 +4,16 @@ import { cn } from '@/lib/utils';
 interface ColorWheelProps {
   onColorSelect?: (color: string) => void;
   harmonyColors?: string[];
+  harmonyType: 'complementary' | 'analogous' | 'monochromatic' | 'triadic' | 'tetradic';
   className?: string;
 }
 
-export const ColorWheel: React.FC<ColorWheelProps> = ({ onColorSelect, harmonyColors = [], className }) => {
+export const ColorWheel: React.FC<ColorWheelProps> = ({ 
+  onColorSelect, 
+  harmonyColors = [], 
+  harmonyType,
+  className 
+}) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [selectedColor, setSelectedColor] = useState<string>('#FFFFFF');
   const [selectedPoint, setSelectedPoint] = useState<{ x: number, y: number } | null>(null);
@@ -72,7 +78,6 @@ export const ColorWheel: React.FC<ColorWheelProps> = ({ onColorSelect, harmonyCo
     });
   }, [selectedPoint, harmonyPoints]);
 
-  // Fonction pour convertir les coordonnées polaires en coordonnées cartésiennes
   const polarToCartesian = (angle: number, radius: number, centerX: number, centerY: number) => {
     return {
       x: centerX + radius * Math.cos(angle * Math.PI / 180),
@@ -80,7 +85,6 @@ export const ColorWheel: React.FC<ColorWheelProps> = ({ onColorSelect, harmonyCo
     };
   };
 
-  // Mettre à jour les points d'harmonie lorsque le point principal change
   useEffect(() => {
     if (!selectedPoint || !canvasRef.current) return;
 
@@ -89,24 +93,43 @@ export const ColorWheel: React.FC<ColorWheelProps> = ({ onColorSelect, harmonyCo
     const centerY = canvas.height / 2;
     const radius = Math.min(centerX, centerY) - 20;
 
-    // Calculer l'angle du point sélectionné
     const dx = selectedPoint.x - centerX;
     const dy = selectedPoint.y - centerY;
     const angle = Math.atan2(dy, dx) * 180 / Math.PI;
 
-    // Calculer les points d'harmonie en fonction des angles
-    const harmonies = [
-      angle + 180, // Complémentaire
-      angle + 120, // Triadique 1
-      angle - 120, // Triadique 2
-    ];
+    // Calculer les angles selon le type d'harmonie
+    let harmonies: number[] = [];
+    switch (harmonyType) {
+      case 'complementary':
+        harmonies = [angle + 180];
+        break;
+      case 'analogous':
+        harmonies = [angle + 30, angle - 30];
+        break;
+      case 'monochromatic':
+        // Pour le monochromatique, on garde le même angle mais on varie la distance
+        harmonies = [angle, angle, angle];
+        break;
+      case 'triadic':
+        harmonies = [angle + 120, angle - 120];
+        break;
+      case 'tetradic':
+        harmonies = [angle + 90, angle + 180, angle + 270];
+        break;
+    }
 
-    const newHarmonyPoints = harmonies.map(harmonyAngle => 
-      polarToCartesian(harmonyAngle, radius * 0.8, centerX, centerY)
-    );
+    // Calculer les points d'harmonie avec des rayons différents pour le monochromatique
+    const newHarmonyPoints = harmonies.map((harmonyAngle, index) => {
+      if (harmonyType === 'monochromatic') {
+        // Pour le monochromatique, on utilise différents rayons
+        const radiusMultiplier = 0.6 + (index * 0.2); // 0.6, 0.8, 1.0
+        return polarToCartesian(harmonyAngle, radius * radiusMultiplier, centerX, centerY);
+      }
+      return polarToCartesian(harmonyAngle, radius * 0.8, centerX, centerY);
+    });
 
     setHarmonyPoints(newHarmonyPoints);
-  }, [selectedPoint]);
+  }, [selectedPoint, harmonyType]);
 
   const handleInteraction = (event: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
@@ -129,7 +152,6 @@ export const ColorWheel: React.FC<ColorWheelProps> = ({ onColorSelect, harmonyCo
     const x = clientX - rect.left;
     const y = clientY - rect.top;
 
-    // Mettre à jour le point sélectionné
     setSelectedPoint({ x, y });
 
     const imageData = ctx.getImageData(x, y, 1, 1).data;

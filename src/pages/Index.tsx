@@ -102,6 +102,8 @@ const Index = () => {
             <div className="flex justify-center">
               <ColorWheel
                 onColorSelect={setSelectedColor}
+                harmonyColors={harmonyColors}
+                harmonyType={harmonyType}
                 className="transform hover:scale-105 transition-transform duration-300"
               />
             </div>
