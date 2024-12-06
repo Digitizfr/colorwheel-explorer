@@ -107,7 +107,6 @@ export const ColorWheel: React.FC<ColorWheelProps> = ({
         harmonies = [angle + 30, angle - 30];
         break;
       case 'monochromatic':
-        // Pour le monochromatique, on garde le même angle mais on varie la distance
         harmonies = [angle, angle, angle];
         break;
       case 'triadic':
@@ -118,11 +117,9 @@ export const ColorWheel: React.FC<ColorWheelProps> = ({
         break;
     }
 
-    // Calculer les points d'harmonie avec des rayons différents pour le monochromatique
     const newHarmonyPoints = harmonies.map((harmonyAngle, index) => {
       if (harmonyType === 'monochromatic') {
-        // Pour le monochromatique, on utilise différents rayons
-        const radiusMultiplier = 0.6 + (index * 0.2); // 0.6, 0.8, 1.0
+        const radiusMultiplier = 0.6 + (index * 0.2);
         return polarToCartesian(harmonyAngle, radius * radiusMultiplier, centerX, centerY);
       }
       return polarToCartesian(harmonyAngle, radius * 0.8, centerX, centerY);
@@ -152,13 +149,35 @@ export const ColorWheel: React.FC<ColorWheelProps> = ({
     const x = clientX - rect.left;
     const y = clientY - rect.top;
 
-    setSelectedPoint({ x, y });
+    // Calculer la distance par rapport au centre
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const radius = Math.min(centerX, centerY) - 20;
+    
+    const dx = x - centerX;
+    const dy = y - centerY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
 
-    const imageData = ctx.getImageData(x, y, 1, 1).data;
-    const color = `#${imageData[0].toString(16).padStart(2, '0')}${imageData[1].toString(16).padStart(2, '0')}${imageData[2].toString(16).padStart(2, '0')}`;
-
-    setSelectedColor(color);
-    onColorSelect?.(color);
+    // Si le point est en dehors du cercle, on le ramène sur le bord
+    if (distance > radius) {
+      const angle = Math.atan2(dy, dx);
+      const newX = centerX + radius * Math.cos(angle);
+      const newY = centerY + radius * Math.sin(angle);
+      setSelectedPoint({ x: newX, y: newY });
+      
+      // Obtenir la couleur au point ajusté
+      const imageData = ctx.getImageData(newX, newY, 1, 1).data;
+      const color = `#${imageData[0].toString(16).padStart(2, '0')}${imageData[1].toString(16).padStart(2, '0')}${imageData[2].toString(16).padStart(2, '0')}`;
+      setSelectedColor(color);
+      onColorSelect?.(color);
+    } else {
+      setSelectedPoint({ x, y });
+      
+      const imageData = ctx.getImageData(x, y, 1, 1).data;
+      const color = `#${imageData[0].toString(16).padStart(2, '0')}${imageData[1].toString(16).padStart(2, '0')}${imageData[2].toString(16).padStart(2, '0')}`;
+      setSelectedColor(color);
+      onColorSelect?.(color);
+    }
   };
 
   return (
