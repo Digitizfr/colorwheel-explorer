@@ -27,8 +27,7 @@ export const ColorWheel: React.FC<ColorWheelProps> = ({
     const ctx = canvas.getContext('2d', { alpha: false });
     if (!ctx) return;
 
-    // Définir une taille fixe pour le canvas
-    const size = 300; // Taille fixe de 300px
+    const size = 300;
     const dpr = window.devicePixelRatio || 1;
     
     canvas.width = size * dpr;
@@ -103,7 +102,48 @@ export const ColorWheel: React.FC<ColorWheelProps> = ({
       ctx.lineWidth = 1.5;
       ctx.stroke();
     });
+
   }, [selectedPoint, harmonyPoints]);
+
+  const handleInteraction = (event: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let clientX: number, clientY: number;
+
+    if ('touches' in event) {
+      clientX = event.touches[0].clientX;
+      clientY = event.touches[0].clientY;
+    } else {
+      clientX = event.clientX;
+      clientY = event.clientY;
+    }
+
+    const x = ((clientX - rect.left) * canvas.width) / rect.width;
+    const y = ((clientY - rect.top) * canvas.height) / rect.height;
+
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const radius = Math.min(centerX, centerY) - 20;
+
+    // Vérifier si le point est dans le cercle
+    const distance = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
+
+    if (distance <= radius) {
+      const scaledX = (x * 300) / canvas.width;
+      const scaledY = (y * 300) / canvas.height;
+      setSelectedPoint({ x: scaledX, y: scaledY });
+
+      const imageData = ctx.getImageData(x, y, 1, 1).data;
+      const color = `#${imageData[0].toString(16).padStart(2, '0')}${imageData[1].toString(16).padStart(2, '0')}${imageData[2].toString(16).padStart(2, '0')}`;
+      setSelectedColor(color);
+      onColorSelect?.(color);
+    }
+  };
 
   const polarToCartesian = (angle: number, radius: number, centerX: number, centerY: number) => {
     return {
@@ -157,42 +197,6 @@ export const ColorWheel: React.FC<ColorWheelProps> = ({
 
     setHarmonyPoints(newHarmonyPoints);
   }, [selectedPoint, harmonyType]);
-
-  const handleInteraction = (event: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const rect = canvas.getBoundingClientRect();
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    let clientX: number, clientY: number;
-
-    if ('touches' in event) {
-      clientX = event.touches[0].clientX;
-      clientY = event.touches[0].clientY;
-    } else {
-      clientX = event.clientX;
-      clientY = event.clientY;
-    }
-
-    const x = clientX - rect.left;
-    const y = clientY - rect.top;
-
-    // Vérifier si le point est dans le cercle
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-    const radius = Math.min(centerX, centerY) - 20;
-    const distance = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
-
-    if (distance <= radius) {
-      setSelectedPoint({ x, y });
-      const imageData = ctx.getImageData(x, y, 1, 1).data;
-      const color = `#${imageData[0].toString(16).padStart(2, '0')}${imageData[1].toString(16).padStart(2, '0')}${imageData[2].toString(16).padStart(2, '0')}`;
-      setSelectedColor(color);
-      onColorSelect?.(color);
-    }
-  };
 
   return (
     <div className={cn("relative inline-block w-[300px]", className)}>
