@@ -3,13 +3,15 @@ import { cn } from '@/lib/utils';
 
 interface ColorDisplayProps {
   color: string;
-  complementaryColor: string;
+  harmonyColors: string[];
+  harmonyType: 'complementary' | 'analogous' | 'monochromatic' | 'triadic' | 'tetradic';
   className?: string;
 }
 
 export const ColorDisplay: React.FC<ColorDisplayProps> = ({
   color,
-  complementaryColor,
+  harmonyColors,
+  harmonyType,
   className,
 }) => {
   const hexToRgb = (hex: string) => {
@@ -25,10 +27,21 @@ export const ColorDisplay: React.FC<ColorDisplayProps> = ({
     return rgb ? `RGB(${rgb.r}, ${rgb.g}, ${rgb.b})` : '';
   };
 
+  const getHarmonyTitle = () => {
+    switch (harmonyType) {
+      case 'complementary': return 'Couleur Complémentaire';
+      case 'analogous': return 'Couleurs Analogues';
+      case 'monochromatic': return 'Couleurs Monochromatiques';
+      case 'triadic': return 'Couleurs Triadiques';
+      case 'tetradic': return 'Couleurs Tétradiques';
+      default: return 'Harmonies de Couleurs';
+    }
+  };
+
   return (
-    <div className={cn("space-y-4 animate-fade-in", className)}>
+    <div className={cn("space-y-6 animate-fade-in", className)}>
       <div className="space-y-2">
-        <h3 className="text-lg font-semibold">Selected Color</h3>
+        <h3 className="text-lg font-semibold">Couleur Sélectionnée</h3>
         <div className="flex items-center space-x-4">
           <div
             className="w-16 h-16 rounded-lg shadow-md"
@@ -41,17 +54,21 @@ export const ColorDisplay: React.FC<ColorDisplayProps> = ({
         </div>
       </div>
 
-      <div className="space-y-2">
-        <h3 className="text-lg font-semibold">Complementary Color</h3>
-        <div className="flex items-center space-x-4">
-          <div
-            className="w-16 h-16 rounded-lg shadow-md"
-            style={{ backgroundColor: complementaryColor }}
-          />
-          <div className="space-y-1">
-            <p className="text-sm font-medium">HEX: {complementaryColor}</p>
-            <p className="text-sm text-gray-600">RGB: {rgbToString(hexToRgb(complementaryColor))}</p>
-          </div>
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">{getHarmonyTitle()}</h3>
+        <div className="grid grid-cols-2 gap-4">
+          {harmonyColors.slice(1).map((harmonyColor, index) => (
+            <div key={index} className="flex items-center space-x-4">
+              <div
+                className="w-16 h-16 rounded-lg shadow-md"
+                style={{ backgroundColor: harmonyColor }}
+              />
+              <div className="space-y-1">
+                <p className="text-sm font-medium">HEX: {harmonyColor}</p>
+                <p className="text-sm text-gray-600">RGB: {rgbToString(hexToRgb(harmonyColor))}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
