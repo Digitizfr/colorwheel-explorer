@@ -4,8 +4,8 @@ import { ColorDisplay } from '@/components/ColorDisplay';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { Palette } from "lucide-react";
 import { Footer } from '@/components/Footer';
+import { Logo } from '@/components/Logo';
 
 type HarmonyType = 'complementary' | 'analogous' | 'monochromatic' | 'triadic' | 'tetradic';
 
@@ -95,7 +95,7 @@ const Index = () => {
       <div className="max-w-3xl mx-auto space-y-8">
         <header className="text-center space-y-2">
           <div className="flex items-center justify-center gap-3 mb-2">
-            <Palette className="w-8 h-8 text-blue-600 animate-color-shift" />
+            <Logo />
             <h1 className="text-3xl font-bold text-gray-900">Cercle chromatique en ligne</h1>
           </div>
           <p className="text-gray-600">Créez votre palette de couleurs harmonieuse</p>
